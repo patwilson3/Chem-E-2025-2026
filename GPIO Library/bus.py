@@ -1,4 +1,3 @@
-from i2c_device import I2C_Device
 
 class Bus:
     def __init__(self):
@@ -7,7 +6,7 @@ class Bus:
     def scan(self) -> list:
         pass
 
-    def get_device(self, device_obj) -> I2C_Device:
+    def get_device(self, device_obj):
         pass
 
     def close(self):

@@ -1,19 +1,15 @@
+import lgpio
 
 class Pin:
-    def __init__(self):
-        pass
+    def __init__(self, handle, pin_num):
+        self.handle = handle
+        self.pin_num = pin_num
 
-    def read(self):
+    def _digital_in(self):
         pass
-
-    def write(self, data):
+    def _digital_out(self):
         pass
-
-    def set_mode(self, mode):
+    def _pwm_out(self):
         pass
-
-    def close(self):
-        pass
-
-    def free(self):
-        pass
+    
+    
