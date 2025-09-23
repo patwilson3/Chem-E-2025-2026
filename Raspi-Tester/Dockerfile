@@ -18,7 +18,5 @@ WORKDIR /app
 # Copy your project
 COPY . /app
 
-# Optional: install project as a package
-RUN pip install --upgrade pip && pip install -e ./tester
 
 CMD [ "bash" ]

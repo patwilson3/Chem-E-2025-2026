@@ -13,8 +13,23 @@ import os
     }
     
 }
+
+program will parse the config.json and convert it into wanted test format:
+    {Module type: {address/pin : [test_type]},}
+
+So in the tester we can easily parse as such:
+
+for module in test_dict:
+    for address in module:
+        for test in address:
+            #do some test
+
 """
 
+def setup():
+    path_to_config = "config.json"
+    config = get_config_as_json_obj(path_to_config)
+    return parse_config_json_into_dict(config)
 
 def get_config_as_json_obj(path_to_config) -> dict:
 
@@ -40,6 +55,8 @@ def parse_config_json_into_dict(config_data) -> dict:
     return test_format_dictionary
 
 if __name__ == '__main__':
+
+    #testing
 
     test_json = [
         {
