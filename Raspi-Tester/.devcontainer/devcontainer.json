@@ -1,8 +1,0 @@
-{
-    "name": "ChemE Dev",
-    "build": {
-      "dockerfile": "Dockerfile"
-    },
-    "workspaceFolder": "/app"
-}
-  
