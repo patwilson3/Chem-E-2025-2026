@@ -11,6 +11,9 @@ class I2C_Device:
 
     def read_block(self):
         pass
-    
+
     def write_block(self, data):
+        pass
+
+    def free(self):
         pass
