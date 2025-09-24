@@ -91,6 +91,5 @@ class ASD1115(I2C_Device):
 
     def __init__(self, addr, i2c_bus):
         super().__init__(addr, i2c_bus)
-        self._ADDRESSES['Device'] = addr
 
 
