@@ -130,12 +130,12 @@ class FIELD_OPTIONS(Enum):
 
     #PGA bits 11-9 (GAIN, to avoid chipping, smaller the Gain, finer the resolution is, so for out input voltage we will aim for PGA 2-4)
 
-    PGA_6_144V = 0x0 << SHIFTS.PGA_SHIFT  # ±6.144 V
-    PGA_4_096V = 0x1 << SHIFTS.PGA_SHIFT  # ±4.096 V
-    PGA_2_048V = 0x2 << SHIFTS.PGA_SHIFT  # ±2.048 V (default)
-    PGA_1_024V = 0x3 << SHIFTS.PGA_SHIFT  # ±1.024 V
-    PGA_0_512V = 0x4 << SHIFTS.PGA_SHIFT  # ±0.512 V
-    PGA_0_256V = 0x5 << SHIFTS.PGA_SHIFT  # ±0.256 V
+    PGA_6_144V = (0x0 << SHIFTS.PGA_SHIFT, 6.144)  # ±6.144 V
+    PGA_4_096V = (0x1 << SHIFTS.PGA_SHIFT, 4.096)  # ±4.096 V
+    PGA_2_048V = (0x2 << SHIFTS.PGA_SHIFT, 2.048)  # ±2.048 V (default)
+    PGA_1_024V = (0x3 << SHIFTS.PGA_SHIFT, 1.024)  # ±1.024 V
+    PGA_0_512V = (0x4 << SHIFTS.PGA_SHIFT, 0.512)  # ±0.512 V
+    PGA_0_256V = (0x5 << SHIFTS.PGA_SHIFT, 0.256)  # ±0.256 V
 
     #Mode bit 8
 
@@ -210,5 +210,62 @@ class ASD1115(I2C_Device):
 
     def __init__(self, addr, i2c_bus, os_bit=FIELD_OPTIONS.BUSY, mux_bit=FIELD_OPTIONS.MUX_AIN0_GND, pga_bit=FIELD_OPTIONS.PGA_2_048V, mode_bit=FIELD_OPTIONS.MODE_CONTINUOUS, sps_bit=FIELD_OPTIONS.DR_128SPS, comp_bit=FIELD_OPTIONS.COMP_QUE_DISABLE):
         super().__init__(addr, i2c_bus)
-        self._config = (os_bit | mux_bit | pga_bit | mode_bit | sps_bit | comp_bit)
+        self._FSR = pga_bit[1]
+        self._pga_bit = pga_bit
+        self._config = (os_bit | mux_bit | pga_bit[0] | mode_bit | sps_bit | comp_bit)
 
+    def set_pga_bit(self, pga_bit:FIELD_OPTIONS):
+        self._pga_bit = pga_bit
+    
+    def get_pga_bit(self):
+        return self._pga_bit
+    
+    def write_configuration(self, config=None):
+        if config is None:
+            config = self._config
+
+        handle = super()._device_handle
+        msb = (config >> 8) & 0xFF
+        lsb = config & 0xFF
+
+        buf = bytes([REGISTERS.CONFIG_REG, msb, lsb])
+
+        res = lgpio.i2c_write_word_data(handle, buf)
+
+        if isinstance(res, (list, tuple)) and res[0] < 0:
+            raise IOError(f"I2C write error: {res[0]}")
+        elif isinstance(res, int) and res < 0:
+            raise IOError(f"I2C write error: {res}")
+
+        return res
+
+
+    def read_word(self):
+
+        handle = super()._device_handle
+        addr = super()._addr
+
+        lgpio.i2c_write_device(handle, bytes([REGISTERS.CONVERSION_REG])) #switch pointers
+
+        raw = lgpio.i2c_read_device(handle, 2)
+
+        count, data = raw[0], raw[1]
+
+        if count != 2 or count < 0:
+            raise IOError("Something when wrong trying to read data")
+
+        #return as two compliment word, data is seperated by MSB and LSB
+        return (data[0 << 8]) | data[1]
+    
+    def read_word_and_clean_data(self):
+        read_data = self.read_word()
+        return self._clean_data()
+
+    def _clean_data(self, read_data):
+        #perform two complement
+        if read_data & 0x8000:
+            read_data -= read_data << 16 #convertin it into a signed integer
+        # 2 << 14 = 32768 which is half the range for twos complement (-32768)
+        volts = read_data * (self._FSR / (2 << 14))
+        return volts
+        
