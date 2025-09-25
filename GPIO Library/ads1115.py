@@ -130,12 +130,12 @@ class FIELD_OPTIONS(Enum):
 
     #PGA bits 11-9 (GAIN, to avoid chipping, smaller the Gain, finer the resolution is, so for out input voltage we will aim for PGA 2-4)
 
-    PGA_6_144V = (0x0 << SHIFTS.PGA_SHIFT, 6.144)  # ±6.144 V
-    PGA_4_096V = (0x1 << SHIFTS.PGA_SHIFT, 4.096)  # ±4.096 V
-    PGA_2_048V = (0x2 << SHIFTS.PGA_SHIFT, 2.048)  # ±2.048 V (default)
-    PGA_1_024V = (0x3 << SHIFTS.PGA_SHIFT, 1.024)  # ±1.024 V
-    PGA_0_512V = (0x4 << SHIFTS.PGA_SHIFT, 0.512)  # ±0.512 V
-    PGA_0_256V = (0x5 << SHIFTS.PGA_SHIFT, 0.256)  # ±0.256 V
+    PGA_6_144V = 0x0 << SHIFTS.PGA_SHIFT  # ±6.144 V
+    PGA_4_096V = 0x1 << SHIFTS.PGA_SHIFT # ±4.096 V
+    PGA_2_048V = 0x2 << SHIFTS.PGA_SHIFT  # ±2.048 V (default)
+    PGA_1_024V = 0x3 << SHIFTS.PGA_SHIFT # ±1.024 V
+    PGA_0_512V = 0x4 << SHIFTS.PGA_SHIFT  # ±0.512 V
+    PGA_0_256V = 0x5 << SHIFTS.PGA_SHIFT  # ±0.256 V
 
     #Mode bit 8
 
@@ -167,6 +167,14 @@ class FIELD_OPTIONS(Enum):
     COMP_QUE_4CONV = 0x2 << SHIFTS.COMP_QUE_SHIFT
     COMP_QUE_DISABLE = 0x3 << SHIFTS.COMP_QUE_SHIFT
 
+FSR_MAP = {
+    FIELD_OPTIONS.PGA_6_144V: 6.144,
+    FIELD_OPTIONS.PGA_4_096V: 4.096,
+    FIELD_OPTIONS.PGA_2_048V: 2.048,
+    FIELD_OPTIONS.PGA_1_024V: 1.024,
+    FIELD_OPTIONS.PGA_0_512V: 0.512,
+    FIELD_OPTIONS.PGA_0_256V: 0.256,
+}
 
 class ASD1115(I2C_Device):    
 
@@ -208,14 +216,20 @@ class ASD1115(I2C_Device):
     
     '''
 
-    def __init__(self, addr, i2c_bus, os_bit=FIELD_OPTIONS.BUSY, mux_bit=FIELD_OPTIONS.MUX_AIN0_GND, pga_bit=FIELD_OPTIONS.PGA_2_048V, mode_bit=FIELD_OPTIONS.MODE_CONTINUOUS, sps_bit=FIELD_OPTIONS.DR_128SPS, comp_bit=FIELD_OPTIONS.COMP_QUE_DISABLE):
+    def __init__(self, addr, i2c_bus, os_bit=FIELD_OPTIONS.OS_BUSY, mux_bit=FIELD_OPTIONS.MUX_AIN0_GND, pga_bit=FIELD_OPTIONS.PGA_2_048V, mode_bit=FIELD_OPTIONS.MODE_CONTINUOUS, sps_bit=FIELD_OPTIONS.DR_128SPS, comp_bit=FIELD_OPTIONS.COMP_QUE_DISABLE):
         super().__init__(addr, i2c_bus)
-        self._FSR = pga_bit[1]
+        self._FSR = FSR_MAP[pga_bit]
         self._pga_bit = pga_bit
-        self._config = (os_bit | mux_bit | pga_bit[0] | mode_bit | sps_bit | comp_bit)
+        self._config = (os_bit.value | mux_bit.value | pga_bit.value | mode_bit.value | sps_bit.value | comp_bit.value)
 
     def set_pga_bit(self, pga_bit:FIELD_OPTIONS):
         self._pga_bit = pga_bit
+
+    def set_config(self, config):
+        self._config = config
+
+    def get_config(self):
+        return self._config
     
     def get_pga_bit(self):
         return self._pga_bit
@@ -228,9 +242,9 @@ class ASD1115(I2C_Device):
         msb = (config >> 8) & 0xFF
         lsb = config & 0xFF
 
-        buf = bytes([REGISTERS.CONFIG_REG, msb, lsb])
+        buf = bytes([REGISTERS.CONFIG_REG.value, msb, lsb])
 
-        res = lgpio.i2c_write_word_data(handle, buf)
+        res = lgpio.i2c_write_device(handle, buf)
 
         if isinstance(res, (list, tuple)) and res[0] < 0:
             raise IOError(f"I2C write error: {res[0]}")
@@ -245,7 +259,7 @@ class ASD1115(I2C_Device):
         handle = super()._device_handle
         addr = super()._addr
 
-        lgpio.i2c_write_device(handle, bytes([REGISTERS.CONVERSION_REG])) #switch pointers
+        lgpio.i2c_write_device(handle, bytes([REGISTERS.CONVERSION_REG.value])) #switch pointers
 
         raw = lgpio.i2c_read_device(handle, 2)
 
@@ -255,17 +269,42 @@ class ASD1115(I2C_Device):
             raise IOError("Something when wrong trying to read data")
 
         #return as two compliment word, data is seperated by MSB and LSB
-        return (data[0 << 8]) | data[1]
+        return (data[0] << 8) | data[1]
     
     def read_word_and_clean_data(self):
         read_data = self.read_word()
-        return self._clean_data()
+        return self._clean_data(read_data=read_data)
 
     def _clean_data(self, read_data):
         #perform two complement
         if read_data & 0x8000:
-            read_data -= read_data << 16 #convertin it into a signed integer
+            read_data -= 1 << 16 #convertin it into a signed integer
         # 2 << 14 = 32768 which is half the range for twos complement (-32768)
-        volts = read_data * (self._FSR / (2 << 14))
+        volts = read_data * (self._FSR / 32768.0)
         return volts
         
+
+if __name__ == '__main__':
+    #create bus
+    import time
+
+    os_bit=FIELD_OPTIONS.OS_BUSY
+    mux_bit=FIELD_OPTIONS.MUX_AIN0_GND 
+    pga_bit=FIELD_OPTIONS.PGA_2_048V 
+    mode_bit=FIELD_OPTIONS.MODE_CONTINUOUS
+    sps_bit=FIELD_OPTIONS.DR_128SPS
+    comp_bit=FIELD_OPTIONS.COMP_QUE_DISABLE
+
+    config = (os_bit.value | mux_bit.value | pga_bit.value | mode_bit.value | sps_bit.value | comp_bit.value)
+    #this means, os bit on continuos mode, using AIN0 and GND, GAIN set at 2.048v, Continous mode, data rate set at 128 (def), disable comp bit (continuous read)
+
+    ads1115 = ASD1115(addr=0x48, i2c_bus=1)
+    ads1115.set_config(config)
+    print(f"writing configuration")
+    ads1115.write_configuration()
+
+    while True:
+        time.sleep(0.1)
+        data = ads1115.read_word_and_clean_data()
+        print(f"Reading {data:.3f} volts")
+
