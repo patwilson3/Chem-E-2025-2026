@@ -114,58 +114,58 @@ class SHIFTS(Enum):
 class FIELD_OPTIONS(Enum):
     '''FILED OPTIONS'''
     #OS bit 15
-    OS_SINGLE   = 0x1 << SHIFTS.OS_SHIFT   # Write 1 to start single conversion
-    OS_BUSY     = 0x0 << SHIFTS.OS_SHIFT   # Read: 0 = busy
-    OS_READY    = 0x1 << SHIFTS.OS_SHIFT   # Read: 1 = ready
+    OS_SINGLE   = 0x1 << SHIFTS.OS_SHIFT.value   # Write 1 to start single conversion
+    OS_BUSY     = 0x0 << SHIFTS.OS_SHIFT.value   # Read: 0 = busy
+    OS_READY    = 0x1 << SHIFTS.OS_SHIFT.value   # Read: 1 = ready
 
     #MUX bits 14-12
-    MUX_AIN0_AIN1 = 0x0 << SHIFTS.MUX_SHIFT  # Differential P = AIN0, N = AIN1
-    MUX_AIN0_AIN3 = 0x1 << SHIFTS.MUX_SHIFT
-    MUX_AIN1_AIN3 = 0x2 << SHIFTS.MUX_SHIFT
-    MUX_AIN2_AIN3 = 0x3 << SHIFTS.MUX_SHIFT
-    MUX_AIN0_GND  = 0x4 << SHIFTS.MUX_SHIFT  # Single-ended AIN0
-    MUX_AIN1_GND  = 0x5 << SHIFTS.MUX_SHIFT
-    MUX_AIN2_GND  = 0x6 << SHIFTS.MUX_SHIFT
-    MUX_AIN3_GND  = 0x7 << SHIFTS.MUX_SHIFT
+    MUX_AIN0_AIN1 = 0x0 << SHIFTS.MUX_SHIFT.value  # Differential P = AIN0, N = AIN1
+    MUX_AIN0_AIN3 = 0x1 << SHIFTS.MUX_SHIFT.value
+    MUX_AIN1_AIN3 = 0x2 << SHIFTS.MUX_SHIFT.value
+    MUX_AIN2_AIN3 = 0x3 << SHIFTS.MUX_SHIFT.value
+    MUX_AIN0_GND  = 0x4 << SHIFTS.MUX_SHIFT.value  # Single-ended AIN0
+    MUX_AIN1_GND  = 0x5 << SHIFTS.MUX_SHIFT.value
+    MUX_AIN2_GND  = 0x6 << SHIFTS.MUX_SHIFT.value
+    MUX_AIN3_GND  = 0x7 << SHIFTS.MUX_SHIFT.value
 
     #PGA bits 11-9 (GAIN, to avoid chipping, smaller the Gain, finer the resolution is, so for out input voltage we will aim for PGA 2-4)
 
-    PGA_6_144V = 0x0 << SHIFTS.PGA_SHIFT  # ±6.144 V
-    PGA_4_096V = 0x1 << SHIFTS.PGA_SHIFT # ±4.096 V
-    PGA_2_048V = 0x2 << SHIFTS.PGA_SHIFT  # ±2.048 V (default)
-    PGA_1_024V = 0x3 << SHIFTS.PGA_SHIFT # ±1.024 V
-    PGA_0_512V = 0x4 << SHIFTS.PGA_SHIFT  # ±0.512 V
-    PGA_0_256V = 0x5 << SHIFTS.PGA_SHIFT  # ±0.256 V
+    PGA_6_144V = 0x0 << SHIFTS.PGA_SHIFT.value  # ±6.144 V
+    PGA_4_096V = 0x1 << SHIFTS.PGA_SHIFT.value # ±4.096 V
+    PGA_2_048V = 0x2 << SHIFTS.PGA_SHIFT.value  # ±2.048 V (default)
+    PGA_1_024V = 0x3 << SHIFTS.PGA_SHIFT.value # ±1.024 V
+    PGA_0_512V = 0x4 << SHIFTS.PGA_SHIFT.value  # ±0.512 V
+    PGA_0_256V = 0x5 << SHIFTS.PGA_SHIFT.value  # ±0.256 V
 
     #Mode bit 8
 
-    MODE_CONTINUOUS = 0x0 << SHIFTS.MODE_SHIFT
-    MODE_SINGLE     = 0x1 << SHIFTS.MODE_SHIFT
+    MODE_CONTINUOUS = 0x0 << SHIFTS.MODE_SHIFT.value
+    MODE_SINGLE     = 0x1 << SHIFTS.MODE_SHIFT.value
 
     #Data rate bits 7-5
 
-    DR_8SPS   = 0x0 << SHIFTS.DR_SHIFT
-    DR_16SPS  = 0x1 << SHIFTS.DR_SHIFT
-    DR_32SPS  = 0x2 << SHIFTS.DR_SHIFT
-    DR_64SPS  = 0x3 << SHIFTS.DR_SHIFT
-    DR_128SPS = 0x4 << SHIFTS.DR_SHIFT  # default
-    DR_250SPS = 0x5 << SHIFTS.DR_SHIFT
-    DR_475SPS = 0x6 << SHIFTS.DR_SHIFT
-    DR_860SPS = 0x7 << SHIFTS.DR_SHIFT
+    DR_8SPS   = 0x0 << SHIFTS.DR_SHIFT.value
+    DR_16SPS  = 0x1 << SHIFTS.DR_SHIFT.value
+    DR_32SPS  = 0x2 << SHIFTS.DR_SHIFT.value
+    DR_64SPS  = 0x3 << SHIFTS.DR_SHIFT.value
+    DR_128SPS = 0x4 << SHIFTS.DR_SHIFT.value  # default
+    DR_250SPS = 0x5 << SHIFTS.DR_SHIFT.value
+    DR_475SPS = 0x6 << SHIFTS.DR_SHIFT.value
+    DR_860SPS = 0x7 << SHIFTS.DR_SHIFT.value
 
-    COMP_MODE_TRAD   = 0x0 << SHIFTS.COMP_MODE_SHIFT
-    COMP_MODE_WINDOW = 0x1 << SHIFTS.COMP_MODE_SHIFT
+    COMP_MODE_TRAD   = 0x0 << SHIFTS.COMP_MODE_SHIFT.value
+    COMP_MODE_WINDOW = 0x1 << SHIFTS.COMP_MODE_SHIFT.value
 
-    COMP_POL_ACTIVE_LOW  = 0x0 << SHIFTS.COMP_POL_SHIFT
-    COMP_POL_ACTIVE_HIGH = 0x1 << SHIFTS.COMP_POL_SHIFT
+    COMP_POL_ACTIVE_LOW  = 0x0 << SHIFTS.COMP_POL_SHIFT.value
+    COMP_POL_ACTIVE_HIGH = 0x1 << SHIFTS.COMP_POL_SHIFT.value
 
-    COMP_LAT_NONLATCH = 0x0 << SHIFTS.COMP_LAT_SHIFT
-    COMP_LAT_LATCH    = 0x1 << SHIFTS.COMP_LAT_SHIFT
+    COMP_LAT_NONLATCH = 0x0 << SHIFTS.COMP_LAT_SHIFT.value
+    COMP_LAT_LATCH    = 0x1 << SHIFTS.COMP_LAT_SHIFT.value
 
-    COMP_QUE_1CONV = 0x0 << SHIFTS.COMP_QUE_SHIFT
-    COMP_QUE_2CONV = 0x1 << SHIFTS.COMP_QUE_SHIFT
-    COMP_QUE_4CONV = 0x2 << SHIFTS.COMP_QUE_SHIFT
-    COMP_QUE_DISABLE = 0x3 << SHIFTS.COMP_QUE_SHIFT
+    COMP_QUE_1CONV = 0x0 << SHIFTS.COMP_QUE_SHIFT.value
+    COMP_QUE_2CONV = 0x1 << SHIFTS.COMP_QUE_SHIFT.value
+    COMP_QUE_4CONV = 0x2 << SHIFTS.COMP_QUE_SHIFT.value
+    COMP_QUE_DISABLE = 0x3 << SHIFTS.COMP_QUE_SHIFT.value
 
 FSR_MAP = {
     FIELD_OPTIONS.PGA_6_144V: 6.144,
