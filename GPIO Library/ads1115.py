@@ -238,7 +238,7 @@ class ADS1115(I2C_Device):
         if config is None:
             config = self._config
 
-        handle = super()._device_handle
+        handle = super().get_handle()
         msb = (config >> 8) & 0xFF
         lsb = config & 0xFF
 
@@ -256,8 +256,8 @@ class ADS1115(I2C_Device):
 
     def read_word(self):
 
-        handle = super()._device_handle
-        addr = super()._addr
+        handle = super().get_handle()
+        addr = super().get_addr()
 
         lgpio.i2c_write_device(handle, bytes([REGISTERS.CONVERSION_REG.value])) #switch pointers
 
