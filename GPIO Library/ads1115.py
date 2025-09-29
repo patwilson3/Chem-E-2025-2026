@@ -298,13 +298,18 @@ if __name__ == '__main__':
     config = (os_bit.value | mux_bit.value | pga_bit.value | mode_bit.value | sps_bit.value | comp_bit.value)
     #this means, os bit on continuos mode, using AIN0 and GND, GAIN set at 2.048v, Continous mode, data rate set at 128 (def), disable comp bit (continuous read)
 
-    ads1115 = ADS1115(addr=0x48, i2c_bus=1)
-    ads1115.set_config(config)
-    print(f"writing configuration")
-    ads1115.write_configuration()
+    try:
+        ads1115 = ADS1115(addr=0x48, i2c_bus=1)
+        ads1115.set_config(config)
+        print(f"writing configuration")
+        ads1115.write_configuration()
 
-    while True:
-        time.sleep(0.1)
-        data = ads1115.read_word_and_clean_data()
-        print(f"Reading {data:.3f} volts")
+        while True:
+            time.sleep(0.1)
+            data = ads1115.read_word_and_clean_data()
+            print(f"Reading {data:.3f} volts")
+    except KeyboardInterrupt:
+        print("closing bus")
+        ads1115.close()
+
 
