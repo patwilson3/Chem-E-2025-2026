@@ -176,7 +176,7 @@ FSR_MAP = {
     FIELD_OPTIONS.PGA_0_256V: 0.256,
 }
 
-class ASD1115(I2C_Device):    
+class ADS1115(I2C_Device):    
 
     ''' example usag of using a config var:
         say you want:
@@ -298,7 +298,7 @@ if __name__ == '__main__':
     config = (os_bit.value | mux_bit.value | pga_bit.value | mode_bit.value | sps_bit.value | comp_bit.value)
     #this means, os bit on continuos mode, using AIN0 and GND, GAIN set at 2.048v, Continous mode, data rate set at 128 (def), disable comp bit (continuous read)
 
-    ads1115 = ASD1115(addr=0x48, i2c_bus=1)
+    ads1115 = ADS1115(addr=0x48, i2c_bus=1)
     ads1115.set_config(config)
     print(f"writing configuration")
     ads1115.write_configuration()
