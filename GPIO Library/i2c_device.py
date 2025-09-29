@@ -15,7 +15,7 @@ class I2C_Device:
     def get_addr(self):
         return self._addr
 
-    def get_bus(self)
+    def get_bus(self):
         return self._i2c_bus
         
 
