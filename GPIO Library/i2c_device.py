@@ -9,4 +9,14 @@ class I2C_Device:
     def close(self):
         lgpio.i2c_close(self._handle)
 
+    def get_handle(self):
+        return self._device_handle
+
+    def get_addr(self):
+        return self._addr
+
+    def get_bus(self)
+        return self._i2c_bus
+        
+
     
