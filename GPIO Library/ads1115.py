@@ -308,12 +308,14 @@ if __name__ == '__main__':
             try:
                 curr_time = time.time()
                 data = ads1115.read_word_and_clean_data()
-                print(f"Reading {data:.3f} volts, time: {curr_time-start_time}")
-                res_arr.append([curr_time - start_time, f'{data:.3f}'])
+                amount_time = f'{(curr_time-start_time):.3f}'
+                volts = f'{data:.5f}'
+                print(f"Reading {volts} volts, time: {amount_time}")
+                res_arr.append([amount_time, volts])
                 time.sleep(0.5)
             except Exception as e:
-                print(f"error while reading data at time {curr_time - start_time}")
-                res_arr.append([curr_time-start_time, "read error"])
+                print(f"error while reading data at time {amount_time}")
+                res_arr.append([amount_time, "read error"])
 
     except KeyboardInterrupt:
         print("closing bus")
