@@ -302,13 +302,26 @@ if __name__ == '__main__':
         ads1115.set_pga_bit(pga_bit)
         print(f"writing configuration")
         ads1115.write_configuration()
-
+        start_time = time.time()
+        res_arr = []
         while True:
-            time.sleep(0.1)
-            data = ads1115.read_word_and_clean_data()
-            print(f"Reading {data:.3f} volts")
+            try:
+                curr_time = time.time()
+                data = ads1115.read_word_and_clean_data()
+                print(f"Reading {data:.3f} volts, time: {curr_time-start_time}")
+                res_arr.append([curr_time - start_time, f'{data:.3f}'])
+                time.sleep(0.5)
+            except Exception as e:
+                print(f"error while reading data at time {curr_time - start_time}")
+                res_arr.append([curr_time-start_time, "read error"])
+
     except KeyboardInterrupt:
         print("closing bus")
         ads1115.close()
+        with open(f"results_{time.time()}.txt", "a") as f:
+            for data in res_arr:
+                f.write(f"time: {data[0]}, volts: {data[-1]}\n")
+            f.close()
+
 
 
