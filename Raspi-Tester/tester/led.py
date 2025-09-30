@@ -1,0 +1,2 @@
+class LED:
+    raise NotImplementedError
