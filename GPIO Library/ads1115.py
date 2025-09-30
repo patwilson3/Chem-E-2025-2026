@@ -224,6 +224,7 @@ class ADS1115(I2C_Device):
 
     def set_pga_bit(self, pga_bit:FIELD_OPTIONS):
         self._pga_bit = pga_bit
+        self._FSR = FSR_MAP[pga_bit]
 
     def set_config(self, config):
         self._config = config
@@ -259,17 +260,14 @@ class ADS1115(I2C_Device):
         handle = super().get_handle()
         addr = super().get_addr()
 
-        lgpio.i2c_write_device(handle, bytes([REGISTERS.CONVERSION_REG.value])) #switch pointers
+        # Optional: select CONVERSION register (not always needed in continuous mode)
+        lgpio.i2c_write_device(handle, bytes([REGISTERS.CONVERSION_REG.value]))
 
-        raw = lgpio.i2c_read_device(handle, 2)
-
-        count, data = raw[0], raw[1]
-
+        count, buf = lgpio.i2c_read_device(handle, 2)
         if count != 2 or count < 0:
-            raise IOError("Something when wrong trying to read data")
-
-        #return as two compliment word, data is seperated by MSB and LSB
-        return (data[0] << 8) | data[1]
+            raise IOError("Something went wrong trying to read data")
+        raw = (buf[0] << 8) | buf[1]
+        return raw
     
     def read_word_and_clean_data(self):
         read_data = self.read_word()
@@ -288,9 +286,9 @@ if __name__ == '__main__':
     #create bus
     import time
 
-    os_bit=FIELD_OPTIONS.OS_BUSY
+    os_bit=FIELD_OPTIONS.OS_SINGLE
     mux_bit=FIELD_OPTIONS.MUX_AIN0_GND 
-    pga_bit=FIELD_OPTIONS.PGA_2_048V 
+    pga_bit=FIELD_OPTIONS.PGA_4_096V
     mode_bit=FIELD_OPTIONS.MODE_CONTINUOUS
     sps_bit=FIELD_OPTIONS.DR_128SPS
     comp_bit=FIELD_OPTIONS.COMP_QUE_DISABLE
@@ -301,6 +299,7 @@ if __name__ == '__main__':
     try:
         ads1115 = ADS1115(addr=0x48, i2c_bus=1)
         ads1115.set_config(config)
+        ads1115.set_pga_bit(pga_bit)
         print(f"writing configuration")
         ads1115.write_configuration()
 

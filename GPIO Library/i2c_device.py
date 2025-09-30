@@ -7,7 +7,7 @@ class I2C_Device:
         self._device_handle = lgpio.i2c_open(i2c_bus, addr)
     
     def close(self):
-        lgpio.i2c_close(self._handle)
+        lgpio.i2c_close(self._device_handle)
 
     def get_handle(self):
         return self._device_handle
