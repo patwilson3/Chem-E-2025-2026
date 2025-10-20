@@ -5,9 +5,23 @@ class I2C_Device:
         self._addr = addr
         self._i2c_bus = i2c_bus
         self._device_handle = lgpio.i2c_open(i2c_bus, addr)
+        if self._device_handle < 0:
+            raise RuntimeError(f"Failed to open I2C device at address 0x{addr:02x} on bus {i2c_bus}: {self._device_handle}")
     
     def close(self):
-        lgpio.i2c_close(self._device_handle)
+        """Close the I2C device"""
+        result = lgpio.i2c_close(self._device_handle)
+        if result < 0:
+            raise RuntimeError(f"Failed to close I2C device: {result}")
+        return result
+    
+    def __enter__(self):
+        """Context manager entry"""
+        return self
+    
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        """Context manager exit - ensures cleanup"""
+        self.close()
 
     def get_handle(self):
         return self._device_handle

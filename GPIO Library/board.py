@@ -4,23 +4,48 @@ from gpio_device import GPIO_Device
 class Board:
     _instance = None
     _initiated = False
-    def __init__(self, chip):
-        if not self._initiated:
-            self._pins = []
-            self._chip = chip
-            self._handle = lgpio.gpiochip_open(chip)
-            self._initiated = True
     
     def __new__(cls, *args, **kwargs):
         if cls._instance is None:
-            cls._instance = super.__new__(cls, *args, **kwargs)
+            cls._instance = super().__new__(cls)
         return cls._instance
+    
+    def __init__(self, chip):
+        if not Board._initiated:
+            self._pins = []
+            self._chip = chip
+            self._handle = lgpio.gpiochip_open(chip)
+            if self._handle < 0:
+                raise RuntimeError(f"Failed to open GPIO chip {chip}: {self._handle}")
+            Board._initiated = True
 
     def close(self):
-        return lgpio.gpiochip_close(self._handle)
+        """Close the GPIO chip and release all resources"""
+        # Release all GPIO pins first
+        for pin in self._pins[:]:  # Copy list to avoid modification during iteration
+            pin.release()
+        self._pins.clear()
+        
+        # Close the GPIO chip
+        result = lgpio.gpiochip_close(self._handle)
+        if result < 0:
+            raise RuntimeError(f"Failed to close GPIO chip: {result}")
+        
+        # Reset singleton state
+        Board._instance = None
+        Board._initiated = False
+        return result
     
-    def _add_pin(self, gpio_device : GPIO_Device):
-        if not self._check_pin(gpio_device):
+    def __enter__(self):
+        """Context manager entry"""
+        return self
+    
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        """Context manager exit - ensures cleanup"""
+        self.close()
+    
+    def _add_pin_device(self, gpio_device : GPIO_Device):
+        if not self._check_pin_device(gpio_device):
             self._pins.append(gpio_device)
             return True
         return False
@@ -32,7 +57,7 @@ class Board:
             return gpio_device
         return None
     
-    def _remove_pin(self, gpio_device : GPIO_Device):
+    def _remove_pin_device(self, gpio_device : GPIO_Device):
         for pin in self._pins:
             if pin.pin_num == gpio_device.pin_num:
                 self._pins.remove(pin)
@@ -52,7 +77,7 @@ class Board:
                 return True
         return False
     
-    def _check_pin(self, gpio_device : GPIO_Device):
+    def _check_pin_device(self, gpio_device : GPIO_Device):
         if gpio_device in self._pins:
             return True
         return False
