@@ -4,20 +4,10 @@ import time
 from datetime import datetime
 from picamera2 import Picamera2
 
-def main():
+def main_video(video_title, duration):
     # --- Ensure output directory exists ---
     video_dir = "./videos"
     os.makedirs(video_dir, exist_ok=True)
-
-    # --- Parse optional command line argument ---
-    if len(sys.argv) > 2:
-        video_title = "_".join(sys.argv[1:]).replace(" ", "_")
-        print(f"video title: {video_title}")
-        duration = int(sys.argv[-1])
-        print(f"duration: {duration}")
-    else:
-        video_title = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-        duration = 100
 
     # --- Define output path ---
     output_path = os.path.join(video_dir, f"{video_title}.mp4")
@@ -38,4 +28,12 @@ def main():
     print(f" Recording complete. File saved as: {output_path}")
 
 if __name__ == "__main__":
-    main()
+    video_title = 'original_title'
+    duration = 60
+    if len(sys.argv) > 2:
+        video_title = "_".join(sys.argv[1:]).replace(" ", "_")
+        print(f"video title: {video_title}")
+        duration = int(sys.argv[-1])
+        print(f"duration: {duration}")
+        
+    main_video(video_title, duration)
