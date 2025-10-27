@@ -14,6 +14,8 @@ class AD4988:
         self.DIR = pins['DIR']
         self.ENABLE = pins['ENABLE']
 
+
+
         
     
 
