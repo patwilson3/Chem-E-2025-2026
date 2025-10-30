@@ -1,6 +1,0 @@
-========== PASS ==========
-Test Number: 1, Module: I2C, Source: 64, TestType: read
-Test Number: 2, Module: GPIO, Source: 12, TestType: pull up
-========== FAIL ==========
-Test Number: 3, Module: I2C, Source: 55, TestType: write, Error: conn error
-Test Number: 4, Module: GPIO, Source: 22, TestType: button, Error: did not receive button press
