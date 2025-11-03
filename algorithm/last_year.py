@@ -2,6 +2,8 @@ import cv2
 import numpy as np
 from collections import deque
 import time
+import random
+import math
 #from picamera2 import Picamera2, Preview
 #from libcamera import controls
 import threading
