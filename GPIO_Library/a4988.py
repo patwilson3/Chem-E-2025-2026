@@ -20,9 +20,9 @@ class A4988:
     def __init__(self, chip=0,
                  step_pin=None, dir_pin=None,
                  enable_pin=None, reset_pin=None, sleep_pin=None, 
-                 ms1=None, ms2=None, ms3=None, micro_step_length=None, init_dir=0):
+                 ms1_pin=None, ms2_pin=None, ms3_pin=None, micro_step_length=None, init_dir=0):
         
-        if None in (step_pin, dir_pin, enable_pin, reset_pin, sleep_pin, ms1, ms2, ms3):
+        if None in (step_pin, dir_pin, enable_pin, reset_pin, sleep_pin, ms1_pin, ms2_pin, ms3_pin):
             raise ValueError("STEP, DIR, ENABLE, RESET, SLEEP are required")
 
         self.h = lgpio.gpiochip_open(chip)
@@ -31,9 +31,9 @@ class A4988:
         self.en  = enable_pin
         self.rst = reset_pin
         self.slp = sleep_pin
-        self.ms1 = ms1
-        self.ms2 = ms2
-        self.ms3 = ms3
+        self.ms1 = ms1_pin
+        self.ms2 = ms2_pin
+        self.ms3 = ms3_pin
 
         lgpio.gpio_claim_output(self.h, self.step, 0)
         lgpio.gpio_claim_output(self.h, self.dir, init_dir)
@@ -51,20 +51,20 @@ class A4988:
 
     def enable(self):
         """ENABLE low: driver outputs active."""
-        lgpio.gpio_write(self.chip, self.enable_pin, 0)
+        lgpio.gpio_write(self.h, self.en, 0)
 
     def disable(self):
         """ENABLE high: outputs disabled (motor unpowered or high-Z)."""
-        lgpio.gpio_write(self.chip, self.enable_pin, 1)
+        lgpio.gpio_write(self.h, self.en, 1)
 
     def wake(self):
         """SLEEP high -> normal operation; wait for charge pump."""
-        lgpio.gpio_write(self.chip, self.sleep_pin, 1)
+        lgpio.gpio_write(self.h, self.slp, 1)
         time.sleep(self.WAKE_DELAY_S)
 
     def sleep(self):
         """SLEEP low -> low-power, outputs off."""
-        lgpio.gpio_write(self.chip, self.sleep_pin, 0)
+        lgpio.gpio_write(self.h, self.slp, 0)
     
     def set_micro_steps(self, step_length):
         '''input 1, 2, 4, 8, 16'''
@@ -81,11 +81,11 @@ class A4988:
             traceback.print_exc()
 
     def reset(self):
-        lgpio.gpio_write(self.chip, self.reset_pin, 0)
+        lgpio.gpio_write(self.h, self.rst, 0)
         time.sleep(1e-6)
-        lgpio.gpio_write(self.chip, self.reset_pin, 1)
+        lgpio.gpio_write(self.h, self.rst, 1)
 
-    def step(self, step_amount, pulse_width, period):
+    def start_step(self, step_amount, pulse_width, period):
         freq = 1/period
         print(f"frequency: {freq} Hz")
         if pulse_width < 1e-6:
@@ -100,7 +100,7 @@ class A4988:
 
 
     def set_dir(self, direction: int):
-        lgpio.gpio_write(self.chip, self.dir, direction)
+        lgpio.gpio_write(self.h, self.dir, direction)
         self.dir = direction
 
 
@@ -114,22 +114,22 @@ class A4988:
             pass
 
         for pin in {
-            self.step_pin,
-            self.dir_pin,
-            self.enable_pin,
-            self.reset_pin,
-            self.sleep_pin,
-            self.ms1_pin,
-            self.ms2_pin,
-            self.ms3_pin,
+            self.step,
+            self.dir,
+            self.en,
+            self.rst,
+            self.slp,
+            self.ms1,
+            self.ms2,
+            self.ms3,
         }:
             if pin is not None:
                 try:
-                    lgpio.gpio_free(self.chip, pin)
+                    lgpio.gpio_free(self.h, pin)
                 except Exception:
                     pass
 
-        lgpio.gpiochip_close(self.chip)
+        lgpio.gpiochip_close(self.h)
 
 
 if __name__ == '__main__':
@@ -164,12 +164,12 @@ if __name__ == '__main__':
     try:
         driver.enable()
         driver.set_micro_steps(1)
-        driver.step(step_amount=1, pulse_width=pulse_width, period=period)
+        driver.start_step(step_amount=1, pulse_width=pulse_width, period=period)
         driver.set_dir(int(not driver.dir))
-        driver.step(step_amount=1, pulse_width=pulse_width, period=period)
+        driver.start_step(step_amount=1, pulse_width=pulse_width, period=period)
     except Exception as e:
-        print("the following exception occured")
-        traceback.format_exc()
+        print(e)
+        traceback.print_exc()
         driver.release()
 
         
