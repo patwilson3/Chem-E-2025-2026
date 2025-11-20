@@ -2,9 +2,10 @@ import threading
 import os
 import sys
 import time
-import record_orp as orp
-import record_video as vid
+import record_orp as orp_obj
+import record_video as vid_obj
 import argparse
+from picamera2 import Picamera2
 
 
 def main(duration, video_title, is_video, is_orp):
@@ -12,17 +13,18 @@ def main(duration, video_title, is_video, is_orp):
         print("initializing threads")
         init_threads(duration, video_title)
     elif is_video:
-        vid.main_video(video_title, duration)
+        vid_obj.main_video(video_title, duration)
     else:
-        orp.main_orp(duration)
+        orp_obj.main_orp(duration, video_title)
 
 
 def init_threads(duration, video_title):
         '''creates threads that will record data for orp and record data for the video'''
-        args_vid = [video_title, duration]
-        args_orp = [duration]
-        t1 = threading.Thread(target=orp.main_orp, arg=args_orp)
-        t2 = threading.Thread(target=vid.main_video, args=args_vid)
+        picam2 = Picamera2()
+        args_vid = [video_title, duration, picam2]
+        args_orp = [duration, video_title]
+        t1 = threading.Thread(target=orp_obj.main_orp, arg=args_orp)
+        t2 = threading.Thread(target=vid_obj.main_video, args=args_vid)
         threads = [t1, t2]
         t1.start()
         t2.start()
@@ -43,7 +45,7 @@ parser.add_argument("-v", action="store_true", help="please indicate if you want
 args = parser.parse_args()
 
 if __name__ == '__main__':
-
+    print(args)
     duration = int(args.duration)
     video_title = args.video_title
 
