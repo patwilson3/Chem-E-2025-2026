@@ -1,6 +1,7 @@
 import lgpio
 from i2c_device import I2C_Device
 from enum import Enum
+#from control import event
 
 '''
 CONFIG REGISTER STRUCTURE (from docs), this is where we write our configuraitons
@@ -280,14 +281,48 @@ class ADS1115(I2C_Device):
         # 2 << 14 = 32768 which is half the range for twos complement (-32768)
         volts = read_data * (self._FSR / 32768.0)
         return volts
-        
+
+def call_ads1115(addr, bus, read_buffer_time):
+    os_bit=FIELD_OPTIONS.OS_SINGLE
+    mux_bit=FIELD_OPTIONS.MUX_AIN1_GND 
+    pga_bit=FIELD_OPTIONS.PGA_4_096V
+    mode_bit=FIELD_OPTIONS.MODE_CONTINUOUS
+    sps_bit=FIELD_OPTIONS.DR_128SPS
+    comp_bit=FIELD_OPTIONS.COMP_QUE_DISABLE
+
+    config = (os_bit.value | mux_bit.value | pga_bit.value | mode_bit.value | sps_bit.value | comp_bit.value)
+    #this means, os bit on continuos mode, using AIN0 and GND, GAIN set at 2.048v, Continous mode, data rate set at 128 (def), disable comp bit (continuous read)
+
+    try:
+        ads1115 = ADS1115(addr=addr, i2c_bus=bus)
+        ads1115.set_config(config)
+        ads1115.set_pga_bit(pga_bit)
+        print(f"writing configuration")
+        ads1115.write_configuration()
+        start_time = time.time()
+        res_arr = []
+        while not event.is_set():
+            try:
+                curr_time = time.time()
+                data = ads1115.read_word_and_clean_data()
+                amount_time = f'{(curr_time-start_time):.3f}'
+                mvs = data * 1000
+                mvs = mvs - 1486
+                print(f"Reading {mvs} volts, time: {amount_time}")
+                time.sleep(read_buffer_time)
+            except Exception as e:
+                print(f"error while reading data at time {amount_time}")
+
+    except KeyboardInterrupt:
+        print("closing bus")
+        ads1115.close()
 
 if __name__ == '__main__':
     #create bus
     import time
 
     os_bit=FIELD_OPTIONS.OS_SINGLE
-    mux_bit=FIELD_OPTIONS.MUX_AIN0_GND 
+    mux_bit=FIELD_OPTIONS.MUX_AIN1_GND 
     pga_bit=FIELD_OPTIONS.PGA_4_096V
     mode_bit=FIELD_OPTIONS.MODE_CONTINUOUS
     sps_bit=FIELD_OPTIONS.DR_128SPS
@@ -309,7 +344,8 @@ if __name__ == '__main__':
                 curr_time = time.time()
                 data = ads1115.read_word_and_clean_data()
                 amount_time = f'{(curr_time-start_time):.3f}'
-                volts = f'{data:.5f}'
+                volts = data * 1000
+                votls = volts - 1486
                 print(f"Reading {volts} volts, time: {amount_time}")
                 res_arr.append([amount_time, volts])
                 time.sleep(0.5)

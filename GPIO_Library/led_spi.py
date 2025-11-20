@@ -1,4 +1,5 @@
 import lgpio, atexit, time
+from control import event
 
 class LED_Spi:
     """
@@ -45,6 +46,15 @@ class LED_Spi:
             self.clear()      # turn LEDs off
         finally:
             lgpio.spi_close(self.spi_h)
+            
+            
+def call_leds():
+    strip = LED_Spi(num_leds=60)
+    strip.show_white_75()
+    while not event.is_set():
+        pass
+    strip.clear()  # optional; close() also clears
+    strip.close()
 
 # Example
 if __name__ == "__main__":
