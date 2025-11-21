@@ -1,14 +1,14 @@
 import time
 import ina226_move as ina226
-#from control import event
 
-def call_ina_226(address, max_expected_amps, shunt_ohms, bus_volts_max, shunt_volts_max):
+
+def call_ina_226(address, max_expected_amps, shunt_ohms, bus_volts_max, shunt_volts_max, event):
 	
 	while not event.is_set():
 		ammeter = ina226.INA226(address=address, max_expected_amps=max_expected_amps, shunt_ohms=shunt_ohms)
 		ammeter._calibrate(bus_volts_max=bus_volts_max, shunt_volts_max=shunt_volts_max, max_expected_amps=max_expected_amps)
-	
-	return f"{ammeter.voltage():.4f}", f"{ammeter.current():.4f}"
+		print(f"{ammeter.voltage():.4f}", f"{ammeter.current():.4f}")
+		time.sleep(5)
 	
 
 ina226_add = 0x40

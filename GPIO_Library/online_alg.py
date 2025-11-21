@@ -2,7 +2,10 @@ import numpy as np
 from collections import deque
 from pathlib import path
 from ads1115 import *
+import csv
+from pathlib import Path
 
+path_destination = Path(str(Path.cwd()) + r'/alg_recordings')
 
 class SlidingSlopeLR:
     #using ordinary least squares (OLS)
@@ -89,62 +92,93 @@ def std_deviation_rate_of_change_alg_two_offline(window=10, rot_window=10, thres
                                 "std" : std_arr
                                     })
                                     
-def init_ads1115():
-	os_bit=FIELD_OPTIONS.OS_SINGLE
-    mux_bit=FIELD_OPTIONS.MUX_AIN1_GND 
-    pga_bit=FIELD_OPTIONS.PGA_4_096V
-    mode_bit=FIELD_OPTIONS.MODE_CONTINUOUS
-    sps_bit=FIELD_OPTIONS.DR_128SPS
-    comp_bit=FIELD_OPTIONS.COMP_QUE_DISABLE
+def columns_to_csv(path, *columns, headers=None):
 
-    config = (os_bit.value | mux_bit.value | pga_bit.value | mode_bit.value | sps_bit.value | comp_bit.value)
-    #this means, os bit on continuos mode, using AIN0 and GND, GAIN set at 2.048v, Continous mode, data rate set at 128 (def), disable comp bit (continuous read)
+    length = len(columns[0])
+    if any(len(col) != length for col in columns):
+        raise ValueError("All lists must have the same length")
 
-	ads1115 = ADS1115(addr=0x48, i2c_bus=1)
-	ads1115.set_config(config)
-	ads1115.set_pga_bit(pga_bit)
-	print(f"writing configuration")
-	ads1115.write_configuration()
-	
-	return ads1115
-                                    
-def std_deviation_rate_of_change_alg_two_online(window=10, rot_window=10, threshold=5, hit_threshold=10, ads1115=None)
+    with open(path, "w", newline="") as f:
+        writer = csv.writer(f)
+        if headers:
+            writer.writerow(headers)
+        for row in zip(*columns):
+            writer.writerow(row)
 
-		
 
-	    std_arr = []
-		time_arr = []
-		rot_arr = []
-		mvs_arr = []
-		stop_result = {}
+def std_deviation_rate_of_change_alg_two_online(
+    window=10,
+    rot_window=10,
+    threshold=5,
+    hit_threshold=10,
+    ads1115=None,
+    stopping_event=None,
+    period_s: float = 0.2,
+    max_time_s = 150
+):
 
-		slope = SlidingSlopeLR(rot_window)
-		std_c = SlidingSTD(window=window)
-		arr = deque(maxlen=window)
-		hits = 0
-		finished = False
-		while not :
-			arr.append(mvs)
-			rot = slope.update(time, mvs)
-			std = std_c.update(mvs)
-			std_arr.append(std), time_arr.append(time), rot_arr.append(rot), mvs_arr.append(mvs)
-			if std is not None and rot is not None:
-				curr = rot - std
-				if abs(curr) < threshold:
-					hits += 1
-					if hits == hit_threshold:
-						stop_result = pd.DataFrame({
-														"mvs": [mvs], 
-														"ols_rot" : [rot], 
-														"std" : [std], 
-														"time" : [time]
-													})
-				else:
-					hits = 0
-		return stop_result, pd.DataFrame({
-									"time" : time_arr,
-									"mvs": mvs_arr, 
-									"ols_rot" : rot_arr, 
-									"std" : std_arr
-										})
-                                    
+    if ads1115 is None:
+        raise ValueError("ads1115 instance is required")
+    if stopping_event is None:
+        raise ValueError("stopping_event is required")
+
+    std_arr = []
+    time_arr = []
+    rot_arr = []
+    mvs_arr = []
+    is_stop = []
+
+    slope = SlidingSlopeLR(rot_window)
+    std_c = SlidingSTD(window=window)
+
+    hits = 0
+    finished = False
+
+    t0 = time.monotonic()
+    next_t = t0  # next scheduled loop time
+
+    while t_elapsed_s < max_time_s:
+        loop_start = time.monotonic()
+
+        t_elapsed_s = loop_start - t0
+        time_ms = int(t_elapsed_s * 1000)
+
+        mvs = ads1115.get_adjusted_mvs()
+        rot = slope.update(time_ms, mvs)
+        std = std_c.update(mvs)
+
+        std_arr.append(std)
+        time_arr.append(time_ms)
+        rot_arr.append(rot)
+        mvs_arr.append(mvs)
+
+        # default: not a stop sample
+        stop_flag = 0
+
+        if std is not None and rot is not None and not finished:
+            curr = rot - std
+            if abs(curr) < threshold:
+                hits += 1
+                if hits >= hit_threshold:
+                    finished = True
+                    stop_flag = 1
+                    stopping_event.set()
+                    print(f"Alg stopped at mvs: {mvs}, time: {time_ms}")  # notify others if needed
+            else:
+                hits = 0
+
+        is_stop.append(stop_flag)
+
+        next_t += period_s
+        now = time.monotonic()
+        sleep_time = next_t - now
+        if sleep_time > 0:
+            time.sleep(sleep_time)
+
+        # now all lists have the same length and is_stop marks the stop sample
+        columns_to_csv(path_destination + f'/run{time.monotonic()}.csv', time_arr, mvs_arr, rot_arr, std_arr, is_stop, headers=['time', 'mvs', 'rot', 'std', 'stop'])
+
+    # return all collected data
+
+
+                                
