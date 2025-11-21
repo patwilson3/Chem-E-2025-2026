@@ -26,6 +26,7 @@ class A4988:
             raise ValueError("STEP, DIR, ENABLE, RESET, SLEEP are required")
 
         self.h = lgpio.gpiochip_open(chip)
+        #self.h = chip
         self.step = step_pin
         self.dir = dir_pin
         self.en  = enable_pin
@@ -130,19 +131,72 @@ class A4988:
                     pass
 
         lgpio.gpiochip_close(self.h)
+        
+
+def call_motor_driver(chip_handle, STEP_PIN, DIR_PIN):
+    chip = chip_handle
+    STEP_PIN = STEP_PIN
+    DIR_PIN = DIR_PIN
+    ENABLE_PIN = 26
+    RESET_PIN = 23
+    SLEEP_PIN = 24
+    MS1_PIN = 21
+    MS2_PIN = 20
+    MS3_PIN = 19
+
+    driver = A4988(
+        chip=chip,
+        step_pin=STEP_PIN,
+        dir_pin=DIR_PIN,
+        enable_pin=ENABLE_PIN,
+        reset_pin=RESET_PIN,
+        sleep_pin=SLEEP_PIN,
+        ms1_pin=MS1_PIN,
+        ms2_pin=MS2_PIN,
+        ms3_pin=MS3_PIN,
+        micro_step_length=16,
+        init_dir=1,
+    )
+
+    period = 0.01
+    pulse_width = 0.005
+    try:
+        #going down dir 1 --> 8000 steps
+        #going up dir 0 --> 7700 steps
+        driver.set_dir(1)
+        for i in range(8000):
+            lgpio.gpio_write(driver.h, driver.step, 1)
+            time.sleep(1/40000)
+            lgpio.gpio_write(driver.h, driver.step, 0)
+            time.sleep(1/40000)
+        time.sleep(5)
+        driver.set_dir(0)
+        for i in range(7700):
+            lgpio.gpio_write(driver.h, driver.step, 1)
+            time.sleep(1/40000)
+            lgpio.gpio_write(driver.h, driver.step, 0)
+            time.sleep(1/40000)
+        
+        
+    except Exception as e:
+        print(e)
+        traceback.print_exc()
+        
+    finally:
+        driver.release()
 
 
 if __name__ == '__main__':
 
     
-    STEP_PIN = 17
+    STEP_PIN = 12
     DIR_PIN = 27
-    ENABLE_PIN = 22
+    ENABLE_PIN = 26
     RESET_PIN = 23
     SLEEP_PIN = 24
-    MS1_PIN = 5
-    MS2_PIN = 6
-    MS3_PIN = 13
+    MS1_PIN = 21
+    MS2_PIN = 20
+    MS3_PIN = 19
 
     driver = A4988(
         chip=0,
@@ -160,13 +214,17 @@ if __name__ == '__main__':
 
     period = 0.01
     pulse_width = 0.005
-
     try:
-        driver.enable()
-        driver.set_micro_steps(1)
-        driver.start_step(step_amount=1, pulse_width=pulse_width, period=period)
-        driver.set_dir(int(not driver.dir))
-        driver.start_step(step_amount=1, pulse_width=pulse_width, period=period)
+        #going down dir 1 --> 8000 steps
+        #going up dir 0 --> 7700 steps
+        driver.set_dir(1)
+        for i in range(8000):
+            lgpio.gpio_write(driver.h, driver.step, 1)
+            time.sleep(1/40000)
+            lgpio.gpio_write(driver.h, driver.step, 0)
+            time.sleep(1/40000)
+        
+            
     except Exception as e:
         print(e)
         traceback.print_exc()
