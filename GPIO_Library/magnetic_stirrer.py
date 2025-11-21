@@ -1,6 +1,6 @@
 import lgpio
 import time
-#from control import event
+
 
 
 def main():
@@ -55,17 +55,21 @@ def main2():
         lgpio.gpiochip_close(h)
 
 	
-def call_stirrer(chip_handle, pin):
+def call_stirrer(chip_handle, pin, stop_event):
 	
 	h = chip_handle 
 	lgpio.gpio_claim_output(h, pin)
 	
-	while not event.is_set():
+	while not stop_event.is_set():
 		lgpio.gpio_write(h, pin, 1)
 		time.sleep(1/50)
 		lgpio.gpio_write(h, pin, 0)
 		time.sleep(1/500)
 	lgpio.gpio_write(h, pin, 0)
+		time.sleep(1/500)
+		lgpio.gpio_write(h, pin, 0)
+		time.sleep(1/50)
+		
 	lgpio.gpio_free(h, pin)
 	
 	
