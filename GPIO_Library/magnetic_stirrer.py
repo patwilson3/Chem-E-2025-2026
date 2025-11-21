@@ -8,19 +8,20 @@ def main():
 		pin = 13
 		h = lgpio.gpiochip_open(0)
 		lgpio.gpio_claim_output(h, pin)
+	
+	while True:
+		print("turning")
+		lgpio.gpio_write(h, pin, 1)
+		time.sleep(1/50)
+		lgpio.gpio_write(h, pin, 0)
+		time.sleep(1/500)
 		
-		while True:
-			print("turning")
-			lgpio.gpio_write(h, pin, 1)
-			time.sleep(1/5000)
-			lgpio.gpio_write(h, pin, 0)
-			time.sleep(1/5000)
-			
 			
 	except KeyboardInterrupt as e:
 		pass
 		
 	finally:
+		lgpio.gpio_write(h, pin, 0)
 		lgpio.gpio_free(h, pin)
 		lgpio.gpiochip_close(h)
 		
@@ -61,11 +62,12 @@ def call_stirrer(chip_handle, pin):
 	
 	while not event.is_set():
 		lgpio.gpio_write(h, pin, 1)
-		time.sleep(1/50000)
+		time.sleep(1/50)
 		lgpio.gpio_write(h, pin, 0)
-		time.sleep(1/50000)
-		
+		time.sleep(1/500)
+	lgpio.gpio_write(h, pin, 0)
 	lgpio.gpio_free(h, pin)
+	
 	
 if __name__ == '__main__':
 	main()
