@@ -1,8 +1,8 @@
 import threading 
 from magnetic_stirrer import stirr
-from run_ina226 import call_ina_226
+from INA.run_ina226 import call_ina_226
 from a4988 import call_motor_driver, A4988
-from led_spi import call_leds
+from LED.led_spi import call_leds
 from ads1115 import init_ads1115
 from online_alg import std_deviation_rate_of_change_alg_two_online
 from stepper import stepper_worker
