@@ -312,15 +312,15 @@ def ads1115_worker(addr, bus, read_buffer_time, stop_event):
                 data = ads1115.read_word_and_clean_data()
                 amount_time = f'{(curr_time-start_time):.3f}'
                 mvs = data * 1000
-                mvs = mvs - 1486
-                print(f"Reading {mvs} volts, time: {amount_time}")
+                mvs_adj = mvs_adj - 1486
+                print(f"Reading {mvs_adj} volts, time: {amount_time}")
                 time.sleep(read_buffer_time)
             except Exception as e:
                 print(f"error while reading data at time {amount_time}")
 
     except KeyboardInterrupt:
         print("closing bus")
-        ads1115.close()
+        #ads1115.close()
 
 def init_ads1115():
     os_bit=FIELD_OPTIONS.OS_SINGLE
@@ -370,12 +370,12 @@ if __name__ == '__main__':
                 data = ads1115.read_word_and_clean_data()
                 amount_time = f'{(curr_time-start_time):.3f}'
                 volts = data * 1000
-                votls = volts - 1486
-                print(f"Reading {volts} volts, time: {amount_time}")
-                res_arr.append([amount_time, volts])
+                volts_adj = volts - 1486
+                print(f"Reading {volts_adj} volts, time: {amount_time}")
+                res_arr.append([amount_time, volts_adj])
                 time.sleep(0.5)
             except Exception as e:
-                print(f"error while reading data at time {amount_time}")
+                print(f"error while reading data at time {amount_time}, {e}")
                 res_arr.append([amount_time, "read error"])
 
     except KeyboardInterrupt:

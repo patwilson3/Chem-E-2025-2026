@@ -1,7 +1,37 @@
 import lgpio
 import time
+from gpio_device import GPIO_Device
 
+class Magnetic_Stirrer(GPIO_Device):
+	def __init__(self, chip, pin):
+		
+		#super().__init__(chip, pin)
+		self.device_handle = lgpio.gpiochip_open(0)
+		self.pin = pin
+		lgpio.gpio_claim_output(self.device_handle, self.pin)
+		self.is_on = False
+		
+	def on(self, pulse_width, period, event):
+		
+		while not event.is_set():
+			lgpio.gpio_write(self.device_handle, self.pin, 1)
+			time.sleep(1/pulse_width)
+			lgpio.gpio_write(self.device_handle, self.pin, 0)
+			time.sleep(1/period)
+		lgpio.gpio_write(self.device_handle, self.pin, 0)
+			
+	def off(self):
+		self.is_on = False
 
+def stirr(chip, pin, event):
+	try:
+		stirrer = Magnetic_Stirrer(chip=0, pin=13)
+		stirrer.on(50, 500, event)
+	except Exception as e:
+		pass
+	finally:
+		lgpio.gpio_write(stirrer.device_handle, stirrer.pin, 0)
+		lgpio.gpiochip_close(stirrer.device_handle)
 
 def main():
 	try:
@@ -9,13 +39,13 @@ def main():
 		h = lgpio.gpiochip_open(0)
 		lgpio.gpio_claim_output(h, pin)
 	
-	while True:
-		print("turning")
-		lgpio.gpio_write(h, pin, 1)
-		time.sleep(1/50)
-		lgpio.gpio_write(h, pin, 0)
-		time.sleep(1/500)
-		
+		while True:
+			print("turning")
+			lgpio.gpio_write(h, pin, 1)
+			time.sleep(1/50)
+			lgpio.gpio_write(h, pin, 0)
+			time.sleep(1/500)
+			
 			
 	except KeyboardInterrupt as e:
 		pass
@@ -65,13 +95,7 @@ def call_stirrer(chip_handle, pin, stop_event):
 		time.sleep(1/50)
 		lgpio.gpio_write(h, pin, 0)
 		time.sleep(1/500)
-	lgpio.gpio_write(h, pin, 0)
-		time.sleep(1/500)
-		lgpio.gpio_write(h, pin, 0)
-		time.sleep(1/50)
 		
 	lgpio.gpio_free(h, pin)
 	
 	
-if __name__ == '__main__':
-	main()

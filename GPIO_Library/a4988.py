@@ -26,7 +26,6 @@ class A4988:
             raise ValueError("STEP, DIR, ENABLE, RESET, SLEEP are required")
 
         self.h = lgpio.gpiochip_open(chip)
-        #self.h = chip
         self.step = step_pin
         self.dir = dir_pin
         self.en  = enable_pin
@@ -38,12 +37,6 @@ class A4988:
 
         lgpio.gpio_claim_output(self.h, self.step, 0)
         lgpio.gpio_claim_output(self.h, self.dir, init_dir)
-        lgpio.gpio_claim_output(self.h, self.en, 1)   # disabled
-        lgpio.gpio_claim_output(self.h, self.rst, 1)  # normal
-        lgpio.gpio_claim_output(self.h, self.slp, 0)
-        lgpio.gpio_claim_output(self.h, self.ms1, 1)  # default MS setting set at (1, 1, 1)
-        lgpio.gpio_claim_output(self.h, self.ms2, 1)  #
-        lgpio.gpio_claim_output(self.h, self.ms3, 1)  #
 
 
         if not micro_step_length is None:
@@ -116,13 +109,7 @@ class A4988:
 
         for pin in {
             self.step,
-            self.dir,
-            self.en,
-            self.rst,
-            self.slp,
-            self.ms1,
-            self.ms2,
-            self.ms3,
+            self.dir
         }:
             if pin is not None:
                 try:
@@ -133,30 +120,7 @@ class A4988:
         lgpio.gpiochip_close(self.h)
         
 
-def call_motor_driver(chip_handle, STEP_PIN, DIR_PIN):
-    chip = chip_handle
-    STEP_PIN = STEP_PIN
-    DIR_PIN = DIR_PIN
-    ENABLE_PIN = 26
-    RESET_PIN = 23
-    SLEEP_PIN = 24
-    MS1_PIN = 21
-    MS2_PIN = 20
-    MS3_PIN = 19
-
-    driver = A4988(
-        chip=chip,
-        step_pin=STEP_PIN,
-        dir_pin=DIR_PIN,
-        enable_pin=ENABLE_PIN,
-        reset_pin=RESET_PIN,
-        sleep_pin=SLEEP_PIN,
-        ms1_pin=MS1_PIN,
-        ms2_pin=MS2_PIN,
-        ms3_pin=MS3_PIN,
-        micro_step_length=16,
-        init_dir=1,
-    )
+def call_motor_driver(driver):
 
     period = 0.01
     pulse_width = 0.005
@@ -183,8 +147,8 @@ def call_motor_driver(chip_handle, STEP_PIN, DIR_PIN):
         traceback.print_exc()
         
     finally:
-        driver.release()
-
+        #driver.release()
+        pass
 
 if __name__ == '__main__':
 
