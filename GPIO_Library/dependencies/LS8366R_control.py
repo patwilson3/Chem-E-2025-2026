@@ -96,6 +96,10 @@ class LS7366R():
         return data[1]
 
 
+def run_ls7366r():
+    raise NotImplemented
+
+
 if __name__ == "__main__":
     from time import sleep
 

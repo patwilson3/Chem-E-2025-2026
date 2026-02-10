@@ -1,5 +1,5 @@
 import lgpio
-from i2c_device import I2C_Device
+from .i2c_device import I2C_Device
 from enum import Enum
 
 '''

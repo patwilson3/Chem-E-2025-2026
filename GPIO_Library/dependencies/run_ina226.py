@@ -1,8 +1,10 @@
 import time
-import ina226_move as ina226
+from . import ina226_move as ina226
 from pathlib import Path
 import csv
+from .dashboard import Dashboard
 
+DASH = Dashboard()
 
 def call_ina_226(address, max_expected_amps, shunt_ohms, bus_volts_max, shunt_volts_max, event):
 	m_amps = []
@@ -15,9 +17,14 @@ def call_ina_226(address, max_expected_amps, shunt_ohms, bus_volts_max, shunt_vo
 		m_amps.append(m_amp)
 		volts.append(volt)
 		print(f"\n{volt:.4f} volts", f"{m_amp:.4f} mA\n")
-		time.sleep(2)
-	path = str(Path.cwd()) + r'/battery_results'
-	columns_to_csv(path + f'/run{time.monotonic()}.csv', m_amps, volts, headers=['m_amps', 'volts'])
+		DASH.update_battery(volt=volt, m_amp=m_amp)
+		time.sleep(0.5)
+	'''try:
+		path = str(Path.cwd()) + r'/battery_results'
+		columns_to_csv(path + f'/run{time.monotonic()}.csv', m_amps, volts, headers=['m_amps', 'volts'])
+	except FileNotFoundError:
+		path = r'/home/electrical/chem_repo/Chem-E-2025-2026/GPIO_Library/dependencies/battery_results'
+		columns_to_csv(path + f'/run{time.monotonic()}.csv', m_amps, volts, headers=['m_amps', 'volts'])'''
 	
 def columns_to_csv(path, *columns, headers=None):
 

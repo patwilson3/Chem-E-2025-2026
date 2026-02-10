@@ -1,5 +1,5 @@
 import lgpio
-from board import Board
+from .board import Board
 
 class I2C_Device():
 	def __init__(self, addr, i2c_bus):

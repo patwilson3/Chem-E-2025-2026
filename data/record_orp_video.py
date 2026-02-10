@@ -6,28 +6,32 @@ import record_orp as orp_obj
 import record_video as vid_obj
 import argparse
 from picamera2 import Picamera2
+from stepper import stepper_worker
 
 
 def main(duration, video_title, is_video, is_orp):
-    if is_video and is_orp:
-        print("initializing threads")
-        init_threads(duration, video_title)
-    elif is_video:
-        vid_obj.main_video(video_title, duration)
-    else:
-        orp_obj.main_orp(duration, video_title)
+    print("initializing threads")
+    init_threads(duration, video_title, is_video, is_orp)
 
 
-def init_threads(duration, video_title):
+def init_threads(duration, video_title, is_video, is_orp):
         '''creates threads that will record data for orp and record data for the video'''
-        picam2 = Picamera2()
-        args_vid = [video_title, duration, picam2]
-        args_orp = [duration, video_title]
-        t1 = threading.Thread(target=orp_obj.main_orp, arg=args_orp)
-        t2 = threading.Thread(target=vid_obj.main_video, args=args_vid)
-        threads = [t1, t2]
-        t1.start()
-        t2.start()
+        threads = []
+        #sw = threading.Thread(target=stepper_worker)
+        #threads.append(sw)
+        if is_orp:
+            args_orp = [duration, video_title]
+            t1 = threading.Thread(target=orp_obj.main_orp, args=args_orp)
+            threads.append(t1)
+
+        if is_video:
+            picam2 = Picamera2()
+            args_vid = [video_title, duration, picam2]
+            t2 = threading.Thread(target=vid_obj.main_video, args=args_vid)
+            threads.append(t2)
+        
+        for thread in threads:
+            thread.start()
 
         for thread in threads:
             thread.join()
