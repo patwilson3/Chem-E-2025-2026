@@ -30,10 +30,10 @@ def main_orp(duration, title="default"):
                 data = ads1115.read_word_and_clean_data()
                 amount_time = f'{(curr_time-start_time):.3f}'
                 mv = data * 1000
-                mv_adjusted = mv - 1483
+                mv_adjusted = mv - 1481
                 print(f"Reading {mv_adjusted:.5f} mvs, time: {amount_time}")
                 res_arr.append([amount_time, mv_adjusted])
-                time.sleep(0.2)
+                time.sleep(0.05)
             except Exception as e:
                 print(f"error while reading data at time {amount_time}")
                 res_arr.append([amount_time, "read error"])
@@ -57,8 +57,8 @@ def main_orp(duration, title="default"):
             f.close()
 
 if __name__ == '__main__':
-    duration = 60
-    title = "default"
+    duration = 120
+    title = "18C62H2O_11_26_2025_r3"
     if len(sys.argv) > 1:
         duration = int(sys.argv[-1])
     main_orp(duration, title)
