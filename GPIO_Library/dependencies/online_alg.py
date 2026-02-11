@@ -1,12 +1,13 @@
 import numpy as np
 from collections import deque
-from ads1115 import *
+from .ads1115 import *
 import csv
 from pathlib import Path
 import time
 from datetime import datetime
+from .dashboard import Dashboard
 
-path_destination = Path(str(Path.cwd()) + r'/alg_results')
+DASH = Dashboard()
 
 class SlidingSlopeLR:
 	#using ordinary least squares (OLS)
@@ -78,20 +79,10 @@ def std_deviation_rate_of_change_alg_two_offline(window=10, rot_window=10, thres
 			if abs(curr) < threshold:
 				hits += 1
 				if hits == hit_threshold:
-					stop_result = pd.DataFrame({
-													"mvs": [mvs], 
-													"ols_rot" : [rot], 
-													"std" : [std], 
-													"time" : [time]
-												})
-			else:
+					stop_result = None
+			else: #DO NOT USE
 				hits = 0
-	return stop_result, pd.DataFrame({
-								"time" : time_arr,
-								"mvs": mvs_arr, 
-								"ols_rot" : rot_arr, 
-								"std" : std_arr
-									})
+	return stop_result, None
 									
 def columns_to_csv(path, *columns, headers=None):
 
@@ -119,10 +110,15 @@ def std_deviation_rate_of_change_alg_two_online(
 	reset_event=None
 	):
 
+	stop_threshold = 15
+	init = time.time()
+
 	if ads1115 is None:
 		raise ValueError("ads1115 instance is required")
 	if stopping_event is None:
 		raise ValueError("stopping_event is required")
+
+	DASH.update_alg('RUNNING')
 
 	std_arr = []
 	time_arr = []
@@ -151,6 +147,7 @@ def std_deviation_rate_of_change_alg_two_online(
 		std = std_c.update(mvs)
 		if std is not None and rot is not None:
 			print(f"mvs: {float(mvs):.3f}, std: {float(std):.3f}, rot: {float(rot):.3f}, time_s: {float(time_s):.3f}")
+			DASH.update_orp(mvs=mvs, std=std, rot=rot, time_s=time_s)
 		
 		std_arr.append(std)
 		time_arr.append(time_s)
@@ -165,11 +162,13 @@ def std_deviation_rate_of_change_alg_two_online(
 			curr = rot - std
 			if abs(curr) < threshold:
 				hits += 1
-				if hits >= hit_threshold:
+				elaspsed_since_init = time.time() - init
+				if hits >= hit_threshold and elaspsed_since_init > stop_threshold:
 					finished = True
 					stop_flag = 1
 					stopping_event.set()
 					print(f"\nAlg stopped at mvs: {mvs}, time: {time_s}\n")  # notify others if needed
+					DASH.update_alg('STOP DETECTED')
 			else:
 				hits = 0
 
@@ -181,9 +180,17 @@ def std_deviation_rate_of_change_alg_two_online(
 		if sleep_time > 0:
 			time.sleep(sleep_time)
 
-		# now all lists have the same length and is_stop marks the stop sample
+	# now all lists have the same length and is_stop marks the stop sample
+	DASH.update_alg('SAVING DATA')
 	stopping_event.set()
-	columns_to_csv(str(path_destination) + f'/run{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}.csv', time_arr, mvs_arr, rot_arr, std_arr, is_stop, headers=['time', 'mvs', 'rot', 'std', 'stop'])
+	try:
+		path_destination = Path(str(Path.cwd()) + r'/alg_results')
+		columns_to_csv(str(path_destination) + f'/run{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}.csv', time_arr, mvs_arr, rot_arr, std_arr, is_stop, headers=['time', 'mvs', 'rot', 'std', 'stop'])
+		
+	except FileNotFoundError:
+		path_destination = r'/home/electrical/chem_repo/Chem-E-2025-2026/GPIO_Library/dependencies/alg_results'
+		columns_to_csv(str(path_destination) + f'/run{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}.csv', time_arr, mvs_arr, rot_arr, std_arr, is_stop, headers=['time', 'mvs', 'rot', 'std', 'stop'])
+
 
 # return all collected data
 

@@ -15,7 +15,7 @@ sudo apt install python3-lgpio
 import time
 import lgpio
 import traceback
-from gpio_device import GPIO_Device
+from .gpio_device import GPIO_Device
 
 class A4988Stepper(GPIO_Device):
 
@@ -164,6 +164,7 @@ class A4988Stepper(GPIO_Device):
 		"""
 		Move by a given angle (degrees) at a given RPM, blocking.
 		"""
+		print("stepping")
 		if rpm <= 0:
 			raise ValueError("rpm must be > 0.")
 
@@ -239,8 +240,9 @@ class A4988Stepper(GPIO_Device):
 
 
 def stepper_worker():
+	'''THIS IS THE FUNCTION USED'''
 	stepper = A4988Stepper(
-		step_pin=12,
+		step_pin=6,
 		dir_pin=27,
 		enable_pin=26,
 		steps_per_rev=200,
@@ -250,14 +252,40 @@ def stepper_worker():
 	)
 	try:
 		print("MOVING")
-		stepper.move_degrees(950.0, rpm=100.0, clockwise=False)
-		time.sleep(1.5)
+		stepper.move_degrees(935.0, rpm=100.0, clockwise=False)
 	finally:
 		stepper.disable()
 		stepper.cleanup()
 
+def test():
+    h = lgpio.gpiochip_open(0)
+    try:
+        # Claim once
+        lgpio.gpio_claim_output(h, 26, 1)  # initial level optional
+        lgpio.gpio_claim_output(h, 27, 1)
+        lgpio.gpio_claim_output(h, 12, 0)
 
-if __name__ == '__main__':
+        # Set initial states
+        lgpio.gpio_write(h, 26, 1)
+        lgpio.gpio_write(h, 27, 1)
+
+        # Toggle without re-opening/re-claiming
+        for _ in range(5):
+            lgpio.gpio_write(h, 12, 1)
+            time.sleep(1)
+            lgpio.gpio_write(h, 12, 0)
+            time.sleep(1)
+
+    finally:
+        # Optional explicit frees (good hygiene if this code is embedded in a larger app)
+        try:
+            lgpio.gpio_free(h, 12)
+            lgpio.gpio_free(h, 26)
+            lgpio.gpio_free(h, 27)
+        except Exception:
+            pass
+        lgpio.gpiochip_close(h)
+def test_class():
 	try:
 		stepper = A4988Stepper(
 			step_pin=12,
@@ -268,9 +296,15 @@ if __name__ == '__main__':
 			ms2=20,
 			ms3=19
 	)
-		stepper.move_degrees(950.0, rpm=100.0, clockwise=False)
+		stepper.move_degrees(950.0, rpm=50.0, clockwise=False)
 		time.sleep(1.5)
+		stepper.move_degrees(950.0, rpm=50.0, clockwise=True)
 	except Exception:
 		traceback.print_exc()
 	finally:
 		stepper.cleanup()
+
+
+if __name__ == '__main__':
+	stepper_worker()
+	#test()

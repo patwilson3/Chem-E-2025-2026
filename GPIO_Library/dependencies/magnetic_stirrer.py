@@ -1,6 +1,6 @@
 import lgpio
 import time
-from gpio_device import GPIO_Device
+from .gpio_device import GPIO_Device
 
 class Magnetic_Stirrer(GPIO_Device):
 	def __init__(self, chip, pin):
@@ -84,7 +84,19 @@ def main2():
         lgpio.tx_pwm(h, pin, 0, 0)  # stop PWM
         lgpio.gpiochip_close(h)
 
+def call_stirrer_test(chip_handle, pin):
+	start = time.time()
+	h = chip_handle 
+	lgpio.gpio_claim_output(h, pin)
 	
+	while time.time() - start < 10:
+		lgpio.gpio_write(h, pin, 1)
+		time.sleep(1/50)
+		lgpio.gpio_write(h, pin, 0)
+		time.sleep(1/500)
+		
+	lgpio.gpio_free(h, pin)	
+
 def call_stirrer(chip_handle, pin, stop_event):
 	
 	h = chip_handle 
@@ -99,3 +111,7 @@ def call_stirrer(chip_handle, pin, stop_event):
 	lgpio.gpio_free(h, pin)
 	
 	
+if __name__ == '__main__':
+	h = lgpio.gpiochip_open(0)
+	call_stirrer_test(h, 13)
+	lgpio.gpiochip_close(h)

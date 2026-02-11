@@ -12,7 +12,7 @@ import struct
 import spidev
 from time import sleep
 import sys
-import threading
+import csv
 
 
 # Usage: import LS7366R then create an object by calling
@@ -96,21 +96,6 @@ class LS7366R():
         data = self.spi.xfer2([self.READ_STATUS, 0xFF])
         return data[1]
 
-def run_ls7366r(event:threading.Event):
-    encoder = LS7366R(1, 1000000, 4)
-    time_s = 0.500 #ms
-    try:
-        while not event.is_set():
-            int_encode = float(encoder.read_counter())/3575.0855
-            print(int_encode)
-            #sys.stdout.write('\rRotation count: %5i CTRL+C for exit' % int_encode,)
-            #sys.stdout.flush()
-            dist = ((int_encode * 219.8)/1000)
-            speed = dist/time_s
-            print(f"{speed} ms")
-            sleep(time_s)
-    except Exception as e:
-        print("LS7366R thread interrupted.")
 
 if __name__ == "__main__":
     from time import sleep
@@ -118,6 +103,9 @@ if __name__ == "__main__":
     encoder = LS7366R(1, 1000000, 4)
     time_s = 0.500 #ms
     try:
+        with open("LS7366R_speed_and_distance_data.csv", "w", newline="") as f:
+            writer = csv.writer(f)
+            
         while True:
             int_encode = float(encoder.read_counter())/3575.0855
             print(int_encode)
@@ -126,6 +114,8 @@ if __name__ == "__main__":
             dist = ((int_encode * 219.8)/1000)
             speed = dist/time_s
             print(f"{speed} ms")
+            writer.writerow([dist, speed])
+            f.flush()
             sleep(time_s)
     except KeyboardInterrupt:
         encoder.close()
