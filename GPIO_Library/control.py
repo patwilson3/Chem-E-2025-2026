@@ -7,6 +7,7 @@ from ads1115 import init_ads1115
 from online_alg import std_deviation_rate_of_change_alg_two_online
 from stepper import stepper_worker
 from board import Board
+from LS8366R_control import run_ls7366r
 import lgpio
 import traceback
 import time
