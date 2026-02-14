@@ -17,8 +17,8 @@ def main(duration, video_title, is_video, is_orp):
 def init_threads(duration, video_title, is_video, is_orp):
         '''creates threads that will record data for orp and record data for the video'''
         threads = []
-        #sw = threading.Thread(target=stepper_worker)
-        #threads.append(sw)
+        sw = threading.Thread(target=stepper_worker)
+        threads.append(sw)
         if is_orp:
             args_orp = [duration, video_title]
             t1 = threading.Thread(target=orp_obj.main_orp, args=args_orp)

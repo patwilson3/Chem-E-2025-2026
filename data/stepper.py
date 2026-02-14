@@ -10,12 +10,14 @@ Simple A4988 stepper driver wrapper for Raspberry Pi using lgpio.
 
 Install dependency:
 sudo apt install python3-lgpio
+
 """
 
 import time
 import lgpio
 import traceback
 from gpio_device import GPIO_Device
+
 
 class A4988Stepper(GPIO_Device):
 
