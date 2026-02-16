@@ -1,0 +1,14 @@
+{
+  "std_deviation_alg STD_OLS_1T_fast1": 0.026994341854497117,
+  "std_deviation_alg STD_OLS_1T_fast2": -Infinity,
+  "std_deviation_alg STD_OLS_1T_fast3": -Infinity,
+  "std_deviation_alg STD_OLS_1T_bal1": 0.16625748464554335,
+  "std_deviation_alg STD_OLS_1T_bal2": 1.0,
+  "std_deviation_alg STD_OLS_1T_bal3": null,
+  "std_deviation_alg STD_OLS_1T_stable1": null,
+  "std_deviation_alg STD_OLS_1T_stable2": null,
+  "std_deviation_alg STD_OLS_1T_stable3": null,
+  "std_deviation_alg STD_OLS_1T_late1": null,
+  "std_deviation_alg STD_OLS_1T_late2": null,
+  "std_deviation_alg STD_OLS_1T_late3": null
+}

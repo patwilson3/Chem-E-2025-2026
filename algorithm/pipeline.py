@@ -15,15 +15,15 @@ from dataclasses import dataclass
 #(window, rot_window, std_threshold, rot_threshold, hit_count)
 #(window, count, std_threshold)
 STD_ALG_PARAMS = (10, 10, 0.20)
-ORP_DATA_PATH = str(Path.cwd()) +'/Chem-E-2025-2026/algorithm/temp'
-TEMP_DATA_PATH = str(Path.cwd()) +'/Chem-E-2025-2026/algorithm/temp'
+ORP_DATA_PATH = str(Path.cwd()) +'/algorithm/temp'
+TEMP_DATA_PATH = str(Path.cwd()) +'/algorithm/temp'
 TIME_COL = 'time(s)'
 VALUE_COL = 'mvs'
 ALG_MODE = 3
 DO_NOT_USE = []
 # Include only files whose names contain one of these date strings (e.g. "11_18_2025").
 # Leave empty to include all dates.
-DATE_FILTERS = []
+DATE_FILTERS = ["02_11_2026", "02_10_2026"]
 
 warnings.filterwarnings('ignore')
 
