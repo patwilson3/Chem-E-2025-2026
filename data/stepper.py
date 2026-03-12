@@ -254,7 +254,6 @@ def stepper_worker():
 	try:
 		print("MOVING")
 		stepper.move_degrees(945.0, rpm=100.0, clockwise=False)
-		time.sleep(1.5)
 	finally:
 		stepper.disable()
 		stepper.cleanup()

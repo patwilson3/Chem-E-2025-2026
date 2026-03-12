@@ -9,6 +9,7 @@ from dependencies.board import Board
 from dependencies.LS8366R_control import run_ls7366r
 from dependencies.ina226_move import INA226
 from dependencies.dashboard import Dashboard
+from dependencies.hutton import speed_worker
 import lgpio
 import traceback
 import time
@@ -88,6 +89,7 @@ def loop():
 				dashboard.update_alg('IDLE')
 
 				ina = threading.Thread(target=call_ina_226, args=args_ina226)
+				speed = threading.Thread(target=speed_worker, args=[reset_event])
 				stepper_motor = threading.Thread(target=stepper_worker)#g
 				t_stirrer    = threading.Thread(target=stirr, args=args_stirrer)#g
 				reset_button_listener        = threading.Thread(target=reset_listener, args=(h, alg_event, reset_event))
@@ -102,7 +104,8 @@ def loop():
 				dashboard.update_start("RUNNING")
 
 				t_stirrer.start() #once button is pressed stirrer begins
-				time.sleep(3) #let solution stir for 3 seconds before starting injection
+				speed.start()
+				time.sleep(5) #let solution stir for 5 seconds before starting injection
 				stepper_motor.start() #start injections
 				algo.start() #start algorithm
 				stepper_motor.join() #wait for injection to finish

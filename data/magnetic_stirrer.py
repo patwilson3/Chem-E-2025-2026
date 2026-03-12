@@ -4,7 +4,6 @@ from gpio_device import GPIO_Device
 
 class Magnetic_Stirrer(GPIO_Device):
 	def __init__(self, chip, pin):
-		
 		#super().__init__(chip, pin)
 		self.device_handle = lgpio.gpiochip_open(0)
 		self.pin = pin
@@ -31,15 +30,39 @@ class Magnetic_Stirrer(GPIO_Device):
 			lgpio.gpio_write(self.device_handle, self.pin, 0)
 		except KeyboardInterrupt:
 			self.off()
+			
+	def on_for_secs(self, pulse_width, period, time):
+		now = time.time()
+		try:
+			self.is_on = True
+			while time.time() - now < time:
+				lgpio.gpio_write(self.device_handle, self.pin, 1)
+				time.sleep(1/pulse_width)
+				lgpio.gpio_write(self.device_handle, self.pin, 0)
+				time.sleep(1/period)
+			lgpio.gpio_write(self.device_handle, self.pin, 0)
+		except KeyboardInterrupt:
+			self.off()
 		
 	def off(self):
 		self.is_on = False
 		lgpio.gpio_write(self.device_handle, self.pin, 0)
+		lgpio.gpiochip_close(stirrer.device_handle)
 
 def stirr(chip, pin, event):
 	try:
 		stirrer = Magnetic_Stirrer(chip=0, pin=13)
 		stirrer.on(50, 500, event)
+	except Exception as e:
+		pass
+	finally:
+		lgpio.gpio_write(stirrer.device_handle, stirrer.pin, 1)
+		lgpio.gpiochip_close(stirrer.device_handle)
+		
+def stirr_data_collection(chip, pin):
+	try:
+		stirrer = Magnetic_Stirrer(chip=0, pin=13)
+		stirrer.on_no_event(50, 500)
 	except Exception as e:
 		pass
 	finally:

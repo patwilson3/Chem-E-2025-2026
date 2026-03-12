@@ -110,7 +110,7 @@ def std_deviation_rate_of_change_alg_two_online(
 	reset_event=None
 	):
 
-	stop_threshold = 15
+	stop_threshold = 30
 	init = time.time()
 
 	if ads1115 is None:

@@ -7,6 +7,7 @@ import record_video as vid_obj
 import argparse
 from picamera2 import Picamera2
 from stepper import stepper_worker
+from magnetic_stirrer import Magnetic_Stirrer
 
 
 def main(duration, video_title, is_video, is_orp):
@@ -16,6 +17,7 @@ def main(duration, video_title, is_video, is_orp):
 
 def init_threads(duration, video_title, is_video, is_orp):
         '''creates threads that will record data for orp and record data for the video'''
+        #stirr_event = threading.Event()
         threads = []
         sw = threading.Thread(target=stepper_worker)
         threads.append(sw)
@@ -29,7 +31,11 @@ def init_threads(duration, video_title, is_video, is_orp):
             args_vid = [video_title, duration, picam2]
             t2 = threading.Thread(target=vid_obj.main_video, args=args_vid)
             threads.append(t2)
-        
+          
+        #stirrer = Magnetic_Stirrer(0, 13)
+        #t_stirr = threading.Thread(target=stirrer.on, args=[50, 500, stirr_event])
+        #time.sleep(10)
+        #t_stirr.start()
         for thread in threads:
             thread.start()
 
@@ -37,6 +43,8 @@ def init_threads(duration, video_title, is_video, is_orp):
             thread.join()
 
         print("data collection completed")
+        #stirr_event.set()
+        #stirrer.off()
 
 
 parser = argparse.ArgumentParser()

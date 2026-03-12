@@ -1,8 +1,15 @@
-from ads1115 import *
+try:
+    from ads1115 import *
+except Exception as e:
+    pass
 import time
 import os
 import sys
 import traceback
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+
 
 def main_orp(duration, title="default"):
 
@@ -15,6 +22,7 @@ def main_orp(duration, title="default"):
 
     config = (os_bit.value | mux_bit.value | pga_bit.value | mode_bit.value | sps_bit.value | comp_bit.value)
     #this means, os bit on continuos mode, using AIN0 and GND, GAIN set at 2.048v, Continous mode, data rate set at 128 (def), disable comp bit (continuous read)
+
 
     try:
         ads1115 = ADS1115(addr=0x48, i2c_bus=1)
@@ -30,7 +38,7 @@ def main_orp(duration, title="default"):
                 data = ads1115.read_word_and_clean_data()
                 amount_time = f'{(curr_time-start_time):.3f}'
                 mv = data * 1000
-                mv_adjusted = mv - 1481
+                mv_adjusted = mv - 1483
                 print(f"Reading {mv_adjusted:.5f} mvs, time: {amount_time}")
                 res_arr.append([amount_time, mv_adjusted])
                 time.sleep(0.05)
@@ -56,9 +64,31 @@ def main_orp(duration, title="default"):
 
             f.close()
 
+        output_dir = "./orp_plots"
+        time_arr = [round(float(res_arr[i][0]), 3) for i in range(len(res_arr))]
+        mvs_arr = [res_arr[i][1] for i in range(len(res_arr))]
+        filename = os.path.join(output_dir, f"{title}.png")
+
+        save_plot(filename=filename, time_arr=time_arr, mvs_arr=mvs_arr)
+       
+
+def save_plot(filename, time_arr, mvs_arr):
+    plt.plot(time_arr, mvs_arr)
+    plt.xlabel("time(s)")
+    plt.ylabel("mvs")
+    plt.title("Mvs over Time")
+    plt.savefig(filename)
+
+
 if __name__ == '__main__':
-    duration = 120
+    '''duration = 120
     title = "18C62H2O_11_26_2025_r3"
     if len(sys.argv) > 1:
         duration = int(sys.argv[-1])
-    main_orp(duration, title)
+    main_orp(duration, title)'''
+    test_arr = [i for i in range(100)]
+    test_mvs = [i * 2 for i in range(100)]
+    filename = output_dir = "./orp_plots"
+    title = "test"
+    filename = os.path.join(output_dir, f"{title}")
+    save_plot(filename=filename, time_arr=test_arr, mvs_arr=test_mvs)

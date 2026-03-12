@@ -67,8 +67,8 @@ class Dashboard:
 
     # ---- public update methods (thread-safe) ----
 
-    def update_speed(self, speed):
-        self._queue.put((self._speed_var, f"{speed} mph"))
+    def update_speed(self, distance, speed, rpm):
+        self._queue.put((self._speed_var, f"Distance {distance} m, {rpm} rpms, {speed} m/s"))
 
     def update_orp(self, mvs, std, rot, time_s):
         text = (f"mvs: {float(mvs):.3f}   std: {float(std):.3f}\n"
@@ -103,7 +103,7 @@ if __name__ == "__main__":
         while True:
             dash.update_orp(mvs=123.456 + t, std=0.789, rot=1.234, time_s=t)
             dash.update_battery(volt=12.345, m_amp=450.678 + t)
-            dash.update_speed(round(t, 1))
+            dash.update_speed(round(t, 1), round(0.1 + t, 2), round(10+t, 2))
             time.sleep(0.2)
             t += 0.2
 
